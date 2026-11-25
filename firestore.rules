@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // מי מורשה לראות ולסמן.
+    // אפשרות 1 (ברירת מחדל): כל מי שהתחבר עם חשבון Google.
+    function allowed() {
+      return request.auth != null;
+    }
+
+    // אפשרות 2: רק רשימת מיילים קבועה. מחק את הפונקציה למעלה והשתמש בזו:
+    // function allowed() {
+    //   return request.auth != null && request.auth.token.email in [
+    //     'you@gmail.com',
+    //     'partner@gmail.com'
+    //   ];
+    // }
+
+    match /units/{unitId} {
+      allow read: if allowed();
+      allow delete: if allowed();
+      allow create, update: if allowed()
+        && request.resource.data.type in ['agam', 'priv', '']
+        && request.resource.data.tower in ['A', 'B']
+        && request.resource.data.size() <= 12;
+    }
+  }
+}

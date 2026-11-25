@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>מפת משרדים A·B</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: מעשי, מקצועי, לוח עבודה של משרד תיווך
+   IDEA: תוכנית קומה של אדריכל שצובעים עליה בטוש
+   PICTURE: תוכנית הקומה עצמה, גדולה, משרדים צבועים לפי בעלות
+   COLOUR and TYPE: ירוק עמוק לכותרת, ירוק = שי איילה אגם, כחול = לקוח פרטי; Heebo
+   LAYOUT: מגדל + קומה למעלה, תוכנית במרכז, פאנל עריכה בצד, רשימה מלאה למטה */
+:root{color-scheme:light dark;--bg:light-dark(#f4f6f5,#0f1513);--card:light-dark(#fff,#18211e);--ink:light-dark(#14201c,#e7efec);--mut:light-dark(#5d6b66,#9aaba5);--line:light-dark(#d5ddda,#2c3935);--head:#00463c;--agam:#0d8a63;--priv:#2c64c9;--empty:light-dark(#ffffff,#202b28);--plate:light-dark(#e3e8e6,#26302d);--core:light-dark(#c9d1ce,#333f3b);--acc:#ff6f59;--wall:light-dark(#2b3a35,#c4d2cd)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Heebo,system-ui,sans-serif;overflow-x:clip}
+header{background:var(--head);color:#fff;padding:18px max(4vw,16px) 0}
+h1{margin:0 0 4px;font-size:clamp(24px,4vw,34px);line-height:1.1;font-weight:800}
+.sub{color:#cfe7df;font-size:14px;margin:0 0 14px}
+.towers{display:flex;gap:6px}
+.towers button{font:inherit;font-weight:700;font-size:17px;border:0;border-radius:10px 10px 0 0;padding:10px 22px;min-height:44px;background:#0b5e51;color:#d9efe8;cursor:pointer}
+.towers button[aria-pressed=true]{background:var(--bg);color:var(--ink)}
+.hrow{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.auth{display:flex;align-items:center;gap:10px;padding-bottom:8px;font-size:14px;color:#cfe7df}
+.auth button{font:inherit;font-weight:700;min-height:40px;padding:0 14px;border-radius:10px;border:1px solid #6fb3a3;background:transparent;color:#fff;cursor:pointer}
+main{padding:16px max(4vw,16px) 40px;max-width:1300px;margin:0 auto}
+.floors{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;align-items:center}
+.floors .lbl{font-weight:700;margin-inline-end:6px}
+.floors button{font:inherit;font-weight:600;min-width:44px;min-height:44px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;cursor:pointer;position:relative}
+.floors button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.floors button .dot{position:absolute;top:4px;inset-inline-start:4px;width:7px;height:7px;border-radius:50%;background:var(--agam)}
+.floors .sep{width:1px;height:30px;background:var(--line);margin:0 4px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+.planbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.plantop{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.plantop b{font-size:20px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;color:var(--mut)}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-inline-end:5px;border:1px solid var(--line)}
+svg.plan{width:100%;height:auto;display:block;max-height:72vh}
+.u{cursor:pointer}
+.u rect{stroke:var(--wall);stroke-width:7;transition:filter .15s}
+.u:hover rect{filter:brightness(1.08)}
+.u.sel rect{stroke:var(--acc);stroke-width:16}
+.u rect.mm{stroke-dasharray:14 7}
+.u rect.cn,.u.sel rect.cn{stroke:none}
+svg.plan{color:var(--wall)}
+.u:focus{outline:none}.u:focus-visible rect{stroke:var(--acc);stroke-width:14}
+.side{display:grid;gap:16px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.rcard{background:#0d1a2b;border-radius:14px;overflow:hidden;position:relative}
+.rcap{position:absolute;bottom:0;inset-inline:0;display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:22px 12px 10px;background:linear-gradient(#0d1a2b00,#0d1a2be6 45%);color:#fff;pointer-events:none}
+.rcap b{font-size:17px}.rcap span{font-size:13px;color:#b9c8dc}
+#render{display:block;width:100%;height:auto}
+.fb{fill:transparent;cursor:pointer}.fb:hover{fill:rgba(255,255,255,.28)}
+.fb.on{fill:rgba(255,111,89,.55);stroke:#ff6f59;stroke-width:4}
+.tdim{fill:rgba(8,16,30,.45);pointer-events:none}
+.panel h2{margin:0 0 2px;font-size:22px}
+.panel .meta{color:var(--mut);font-size:14px;margin-bottom:12px}
+.opts{display:grid;gap:8px;margin-bottom:12px}
+.opt{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;min-height:48px;font-weight:600}
+.opt input{width:20px;height:20px;accent-color:var(--head)}
+.opt.on.agam{border-color:var(--agam);background:color-mix(in srgb,var(--agam) 12%,transparent)}
+.opt.on.priv{border-color:var(--priv);background:color-mix(in srgb,var(--priv) 12%,transparent)}
+.opt.on.none{border-color:var(--mut)}
+label.f{display:block;font-size:14px;font-weight:600;margin:8px 0 4px}
+input.t,textarea{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+textarea{min-height:70px;resize:vertical}
+input.t:focus,textarea:focus,button:focus-visible{outline:3px solid color-mix(in srgb,var(--acc) 60%,transparent);outline-offset:1px}
+.btns{display:flex;gap:8px;margin-top:14px}
+.btn{font:inherit;font-weight:700;min-height:46px;padding:0 18px;border-radius:10px;border:0;cursor:pointer;background:var(--head);color:#fff;flex:1}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);flex:none}
+.btn:disabled{opacity:.5;cursor:default}
+.empty{color:var(--mut);font-size:15px}
+.msg{font-size:13px;color:var(--mut);margin-top:8px;min-height:18px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}
+.stat{background:var(--bg);border-radius:10px;padding:8px 10px}
+.stat b{display:block;font-size:24px;line-height:1.1}
+.stat span{font-size:13px;color:var(--mut)}
+.stat.a b{color:var(--agam)}.stat.p b{color:var(--priv)}
+.notice{background:color-mix(in srgb,var(--acc) 14%,var(--card));border:1px solid var(--acc);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:14px;display:none}
+section.all{margin-top:26px}
+section.all h2{font-size:22px;margin:0 0 10px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.filters input,.filters select{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);min-height:44px}
+.filters input{flex:1 1 220px}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden;font-size:15px}
+th,td{padding:10px 12px;text-align:start;border-bottom:1px solid var(--line)}
+th{background:var(--plate);font-weight:700;font-size:14px}
+tr.row{cursor:pointer}tr.row:hover td{background:color-mix(in srgb,var(--head) 6%,transparent)}
+.tag{display:inline-block;padding:2px 10px;border-radius:20px;color:#fff;font-size:13px;font-weight:600;white-space:nowrap}
+.tag.agam{background:var(--agam)}.tag.priv{background:var(--priv)}
+.nowrap{white-space:nowrap}
+@media(max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}.side{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}}
+@media(max-width:640px){.side{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:7em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:6.5em;margin-inline-start:-7em;font-weight:600;color:var(--mut)}.stack td:empty{display:none}.towers button{padding:10px 16px}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+</head>
+<body>
+<header>
+  <h1>מפת בעלות משרדים — מגדלים A ו־B</h1>
+  <p class="sub">בחר מגדל וקומה, לחץ על משרד וסמן: שי איילה אגם או לקוח פרטי.</p>
+  <div class="hrow"><div class="towers" id="towers"></div><div class="auth" id="auth"><span id="who"></span><button id="login" type="button">התחבר עם Google</button></div></div>
+</header>
+<main>
+  <div class="notice" id="notice"></div>
+  <div class="floors" id="floors"></div>
+  <div class="grid">
+    <div class="planbox">
+      <div class="plantop">
+        <b id="planTitle"></b>
+        <div class="legend"><span><i style="background:var(--agam)"></i>שי איילה אגם</span><span><i style="background:var(--priv)"></i>לקוח פרטי</span><span><i style="background:var(--empty)"></i>לא מסומן</span><span><i style="background:repeating-linear-gradient(45deg,var(--wall) 0 3px,transparent 3px 8px)"></i>ממ"ד צמוד למשרד</span></div>
+      </div>
+      <svg class="plan" id="plan" viewBox="-335 -10 1345 1020" role="group" aria-label="תוכנית קומה"></svg>
+    </div>
+    <aside class="side">
+      <div class="rcard"><div class="rcap"><b id="rTitle"></b><span>לחץ על קומה בהדמיה</span></div>
+        <svg id="render" viewBox="700 200 1100 1150" role="group" aria-label="הדמיית המגדלים"></svg></div>
+      <div class="panel" id="panel"></div>
+    </aside>
+  </div>
+  <section class="all">
+    <h2>כל המשרדים המסומנים</h2>
+    <div class="filters">
+      <input id="q" type="search" placeholder="חיפוש לפי שם, טלפון, משרד או הערה">
+      <select id="ft"><option value="">כל הסוגים</option><option value="agam">שי איילה אגם</option><option value="priv">לקוח פרטי</option></select>
+      <select id="fb"><option value="">שני המגדלים</option><option value="A">מגדל A</option><option value="B">מגדל B</option></select>
+    </div>
+    <table class="stack"><thead><tr><th>מגדל</th><th>קומה</th><th>משרד</th><th>שטח מ"ר</th><th>בעלים</th><th>שם</th><th>טלפון</th><th>הערות</th></tr></thead><tbody id="rows"></tbody></table>
+    <p class="empty" id="noRows"></p>
+  </section>
+</main>
+<script>
+{
+const PLANS={
+  AL:{title:'קומות 1–9',core:[280,220,440,480],units:[
+    ['A1-01',0,0,350,250,'133.4'],['A1-02',350,0,270,220,'76.4'],['A1-03',620,0,380,250,'101.7'],
+    ['A1-10',0,250,280,370,'141.6',{l:'A1',x:280,y:260,w:100,h:130,a:'19.8',n:'כולל ממ"ד A1 · 121.8 מ"ר ללא ממ"ד'}],['A1-04',720,250,280,270,'135.6',{l:'A2',x:620,y:300,w:100,h:120,a:'14.4',n:'כולל ממ"ד A2 · 121.2 מ"ר ללא ממ"ד'}],['A1-05',720,520,280,180,'90.3'],
+    ['A1-09',0,620,250,380,'165.4'],['A1-08',250,700,200,300,'93.6'],['A1-07',450,700,200,300,'75.9'],['A1-06',650,700,350,300,'105.5']]},
+  AH:{title:'קומות 10–18',core:[300,220,450,480],units:[
+    ['A-01',0,0,500,220,'125.45'],['A-02',500,0,500,250,'126.23'],['A-08',0,220,300,260,'92.96',{l:'A1',x:300,y:240,w:110,h:170,a:'20.61',n:'ממ"ד A1 צמוד (20.61 מ"ר)'}],
+    ['A-03',750,250,250,270,'93.01',{l:'A2',x:650,y:330,w:100,h:140,a:'14.97',n:'ממ"ד A2 צמוד (14.97 מ"ר)'}],['A-04',750,520,250,200,'69.78'],['A-07',0,480,300,520,'150.22'],
+    ['A-06',300,700,250,300,'96.96'],['A-05',550,720,450,280,'104.00']]},
+  B:{title:'קומות טיפוסיות',core:[250,220,500,480],units:[
+    ['B-01',0,0,200,200,'94.6'],['B-02',200,0,180,220,'88.1'],['B-03',380,0,240,220,'86.6'],['B-04',620,0,380,200,'97.6'],
+    ['B-05',750,200,250,250,'122.4',{l:'B2',x:650,y:240,w:100,h:170,a:'',n:'כולל ממ"ד B2'}],['B-06',750,450,250,250,'100.7'],['B-07',680,700,320,300,'107.2'],
+    ['B-08',500,700,180,300,'95.7'],['B-09',320,700,180,300,'96.1'],['B-10',0,700,320,300,'100.1'],
+    ['B-11',0,450,250,250,'119.9',{l:'B1',x:250,y:470,w:100,h:170,a:'',n:'כולל ממ"ד B1'}],['B-12',0,200,250,250,'97.5']]}
+};
+const TOWERS={A:{floors:18,plan:f=>f<=9?'AL':'AH'},B:{floors:17,plan:()=>'B'}};
+const TYPES={agam:'שי איילה אגם',priv:'לקוח פרטי'};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const key=(t,f,u)=>`${t}_${f}_${u}`;
+const $=id=>document.getElementById(id);
+
+let tower='A',floor=1,selUnit=null,data={},db=null,canWrite=true,mode='local';
+const note=t=>{const n=$('notice');n.textContent=t;n.style.display=t?'block':'none'};
+
+function loadLocal(){try{data=JSON.parse(localStorage.getItem('towers-owners')||'{}')}catch(e){data={}}}
+function saveLocal(){try{localStorage.setItem('towers-owners',JSON.stringify(data))}catch(e){}}
+
+function planOf(t,f){return PLANS[TOWERS[t].plan(f)]}
+function unitArea(t,f,u){const r=planOf(t,f).units.find(x=>x[0]===u);return r?r[5]:''}
+function unitMamad(t,f,u){const r=planOf(t,f).units.find(x=>x[0]===u);return r&&r[6]?r[6].n:''}
+
+function renderTowers(){
+  $('towers').innerHTML=Object.keys(TOWERS).map(t=>`<button data-t="${t}" aria-pressed="${t===tower}">מגדל ${t}</button>`).join('');
+}
+function renderFloors(){
+  const n=TOWERS[tower].floors;let h='<span class="lbl">קומה</span>';
+  for(let f=1;f<=n;f++){
+    if(tower==='A'&&f===10)h+='<span class="sep" aria-hidden="true"></span>';
+    const has=planOf(tower,f).units.some(u=>data[key(tower,f,u[0])]?.type);
+    h+=`<button data-f="${f}" aria-pressed="${f===floor}">${f}${has?'<span class="dot"></span>':''}</button>`;
+  }
+  $('floors').innerHTML=h;
+}
+function fit(s,w){const max=Math.max(4,Math.floor(w/17));return s.length>max?s.slice(0,max-1)+'…':s}
+function renderPlan(){
+  const p=planOf(tower,floor),[cx,cy,cw,ch]=p.core;
+  $('planTitle').textContent=`מגדל ${tower} · קומה ${floor}`+(tower==='A'?` (${p.title})`:'');
+  let h=`<defs><pattern id="hatch" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="16" fill="currentColor" opacity=".22"/></pattern></defs><rect x="0" y="0" width="1000" height="1000" rx="10" fill="var(--plate)"/>
+  <rect x="${cx+20}" y="${cy+20}" width="${cw-40}" height="${ch-40}" rx="8" fill="var(--core)"/>
+  <text x="${cx+cw/2}" y="${cy+ch/2}" text-anchor="middle" dominant-baseline="middle" font-size="150" font-weight="800" fill="var(--plate)">${tower}</text>
+  <text x="${cx+cw/2}" y="${cy+ch/2+110}" text-anchor="middle" font-size="30" fill="var(--mut)">ליבה · מעליות · מסדרון</text>`;
+  for(const [id,x,y,w,hh,a,m] of p.units){
+    const d=data[key(tower,floor,id)]||{},t=d.type||'';
+    const fill=t==='agam'?'var(--agam)':t==='priv'?'var(--priv)':'var(--empty)';
+    const ink=t?'#fff':'var(--ink)',mx=x+w/2,my=y+hh/2;
+    const who=t==='agam'?'שי איילה אגם':(d.name||(t==='priv'?'לקוח פרטי':''));
+    h+=`<g class="u${selUnit===id?' sel':''}" data-u="${esc(id)}" tabindex="0" role="button" aria-label="${esc(id)} ${esc(who||'לא מסומן')}">
+      <rect x="${x+6}" y="${y+6}" width="${w-12}" height="${hh-12}" rx="6" fill="${fill}"/>
+      ${m?`<rect class="mm" x="${m.x+(m.x>=x+w?0:6)}" y="${m.y}" width="${m.w-6}" height="${m.h}" rx="4" fill="${fill}"/><rect class="cn" x="${m.x>=x+w?m.x-16:m.x+m.w-8}" y="${m.y+8}" width="24" height="${m.h-16}" fill="${fill}"/><rect x="${m.x+(m.x>=x+w?0:6)}" y="${m.y}" width="${m.w-6}" height="${m.h}" rx="4" fill="url(#hatch)" class="cn" pointer-events="none"/>
+      <text x="${m.x+m.w/2+(m.x>=x+w?-3:3)}" y="${m.y+m.h/2-6}" text-anchor="middle" font-size="24" font-weight="800" fill="${ink}" stroke="${fill}" stroke-width="6" paint-order="stroke">ממ"ד</text><text x="${m.x+m.w/2+(m.x>=x+w?-3:3)}" y="${m.y+m.h/2+22}" text-anchor="middle" font-size="22" font-weight="700" fill="${ink}" stroke="${fill}" stroke-width="6" paint-order="stroke">${esc(m.l)}</text>`:''}
+      <text x="${mx}" y="${my-(who?30:10)}" text-anchor="middle" font-size="38" font-weight="800" fill="${ink}">${esc(id)}</text>
+      <text x="${mx}" y="${my+(who?8:30)}" text-anchor="middle" font-size="26" fill="${ink}" opacity=".8">${esc(a)} מ"ר</text>
+      ${m&&m.n.startsWith('כולל')?`<text x="${mx}" y="${my+(who?40:62)}" text-anchor="middle" font-size="22" font-weight="700" fill="${ink}" opacity=".85">כולל ממ"ד</text>`:''}
+      ${who?`<text x="${mx}" y="${my+(m&&m.n.startsWith('כולל')?78:50)}" text-anchor="middle" font-size="28" font-weight="700" fill="${ink}">${esc(fit(who,w))}</text>`:''}
+    </g>`;
+  }
+  h+=compass(-170,150);
+  $('plan').innerHTML=h;
+}
+function stats(){
+  let a=0,p=0,tot=0;
+  for(let f=1;f<=TOWERS[tower].floors;f++)for(const u of planOf(tower,f).units){tot++;const t=data[key(tower,f,u[0])]?.type;if(t==='agam')a++;else if(t==='priv')p++}
+  return `<div class="stats"><div class="stat a"><b>${a}</b><span>שי איילה אגם</span></div><div class="stat p"><b>${p}</b><span>לקוח פרטי</span></div><div class="stat"><b>${tot-a-p}</b><span>לא מסומנים</span></div></div><p class="msg">סיכום מגדל ${tower} — כל הקומות</p>`;
+}
+function renderPanel(){
+  const el=$('panel');
+  if(!selUnit){el.innerHTML=`<h2>בחר משרד</h2><p class="empty">לחץ על משרד בתוכנית כדי לסמן מי הבעלים.</p>${stats()}`;return}
+  const d=data[key(tower,floor,selUnit)]||{},t=d.type||'';
+  const dis=canWrite?'':'disabled';
+  el.innerHTML=`<h2>${esc(selUnit)}</h2><div class="meta">מגדל ${tower} · קומה ${floor} · ${esc(unitArea(tower,floor,selUnit))} מ"ר${unitMamad(tower,floor,selUnit)?`<br><b>${esc(unitMamad(tower,floor,selUnit))}</b>`:''}${d.updatedAt?` · עודכן ${esc(new Date(d.updatedAt).toLocaleDateString('he-IL'))}${d.updatedBy?` ע״י ${esc(d.updatedBy)}`:''}`:''}</div>
+  <div class="opts">
+    <label class="opt agam${t==='agam'?' on':''}"><input type="radio" name="ty" value="agam" ${t==='agam'?'checked':''} ${dis}>שי איילה אגם</label>
+    <label class="opt priv${t==='priv'?' on':''}"><input type="radio" name="ty" value="priv" ${t==='priv'?'checked':''} ${dis}>לקוח פרטי</label>
+    <label class="opt none${!t?' on':''}"><input type="radio" name="ty" value="" ${!t?'checked':''} ${dis}>לא מסומן</label>
+  </div>
+  <label class="f" for="nm">שם הבעלים / איש קשר</label><input class="t" id="nm" ${dis}>
+  <label class="f" for="ph">טלפון</label><input class="t" id="ph" type="tel" inputmode="tel" ${dis}>
+  <label class="f" for="nt">הערות</label><textarea id="nt" ${dis}></textarea>
+  <div class="btns"><button class="btn" id="save" ${dis}>שמור</button><button class="btn ghost" id="close">סגור</button></div>
+  <p class="msg" id="msg">${canWrite?'':(mode==='db'?'התחבר עם Google כדי לסמן.':'יש לך הרשאת צפייה בלבד.')}</p>${stats()}`;
+  $('nm').value=d.name||'';$('ph').value=d.phone||'';$('nt').value=d.notes||'';
+  el.querySelectorAll('input[name=ty]').forEach(r=>r.addEventListener('change',()=>{
+    el.querySelectorAll('.opt').forEach(o=>o.classList.toggle('on',o.querySelector('input').checked));
+  }));
+  $('save').onclick=save;$('close').onclick=()=>{selUnit=null;renderPlan();renderPanel()};
+}
+async function save(){
+  const t=document.querySelector('input[name=ty]:checked')?.value||'';
+  const rec={tower,floor,unit:selUnit,type:t,name:$('nm').value.trim(),phone:$('ph').value.trim(),notes:$('nt').value.trim(),updatedAt:Date.now()};
+  const k=key(tower,floor,selUnit),empty=!t&&!rec.name&&!rec.phone&&!rec.notes;
+  const prev=data[k];
+  if(empty)delete data[k];else data[k]=rec;
+  renderAll();$('msg').textContent='שומר…';
+  if(mode==='db'){
+    try{const u=firebase.auth().currentUser;rec.updatedBy=u?(u.displayName||u.email||''):'';
+      const ref=db.collection('units').doc(k);if(empty)await ref.delete();else await ref.set(rec);$('msg').textContent='נשמר ✓'}
+    catch(e){if(prev)data[k]=prev;else delete data[k];renderAll();
+      const denied=e&&e.code==='permission-denied';if(denied){canWrite=false;renderPanel()}
+      $('msg').textContent='השמירה נכשלה'+(denied?' — לחשבון הזה אין הרשאת עריכה':'. נסה שוב.')}
+  }else{saveLocal();$('msg').textContent='נשמר במכשיר הזה ✓'}
+}
+function renderList(){
+  const q=$('q').value.trim().toLowerCase(),ft=$('ft').value,fb=$('fb').value;
+  const rows=Object.values(data).filter(d=>d&&d.type&&(!ft||d.type===ft)&&(!fb||d.tower===fb)&&
+    (!q||[d.unit,d.name,d.phone,d.notes,TYPES[d.type]].join(' ').toLowerCase().includes(q)))
+    .sort((a,b)=>a.tower.localeCompare(b.tower)||a.floor-b.floor||String(a.unit).localeCompare(String(b.unit)));
+  $('rows').innerHTML=rows.map(d=>`<tr class="row" data-k="${esc(key(d.tower,d.floor,d.unit))}" data-t="${esc(d.tower)}" data-f="${esc(d.floor)}" data-u="${esc(d.unit)}">
+    <td>${esc(d.tower)}</td><td>${esc(d.floor)}</td><td class="nowrap"><b>${esc(d.unit)}</b></td><td>${esc(unitArea(d.tower,+d.floor,d.unit))}</td>
+    <td><span class="tag ${d.type==='agam'?'agam':'priv'}">${esc(TYPES[d.type]||'')}</span></td><td>${esc(d.name)}</td><td class="nowrap" dir="ltr" style="text-align:end">${esc(d.phone)}</td><td>${esc(d.notes)}</td></tr>`).join('');
+  $('noRows').textContent=rows.length?'':(Object.keys(data).length?'אין תוצאות לחיפוש הזה.':'עדיין לא סומנו משרדים. לחץ על משרד בתוכנית כדי להתחיל.');
+}
+const RG={A:{n:20.5,b:2,E:[[[787,352],[862,1120]],[[950,435],[995,1235]],[[1262,398],[1262,1150]]]},
+  B:{n:19.5,b:2,E:[[[1355,262],[1362,895]],[[1560,295],[1572,960]],[[1738,285],[1675,880]]]}};
+function pt(e,t){return [e[1][0]+(e[0][0]-e[1][0])*t,e[1][1]+(e[0][1]-e[1][1])*t]}
+function poly(T,u0,u1){const g=RG[T],a=g.E.map(e=>pt(e,u0/g.n)),b=g.E.map(e=>pt(e,u1/g.n)).reverse();return a.concat(b).map(p=>p.map(v=>v.toFixed(1)).join(',')).join(' ')}
+function renderRender(){
+  $('rTitle').textContent=`מגדל ${tower} · קומה ${floor}`;
+  let h='<image href="render.jpg" x="700" y="200" width="1100" height="1150"/>';
+  for(const T of Object.keys(RG)){
+    const g=RG[T];
+    if(T!==tower)h+=`<polygon class="tdim" points="${poly(T,g.b,g.n)}"/>`;
+    for(let f=1;f<=TOWERS[T].floors;f++)h+=`<polygon class="fb${T===tower&&f===floor?' on':''}" data-t="${T}" data-f="${f}" points="${poly(T,g.b+f-1,g.b+f)}"><title>מגדל ${T} קומה ${f}</title></polygon>`;
+    const top=pt(g.E[1],1);
+    h+=`<g pointer-events="none"><circle cx="${top[0]}" cy="${top[1]-55}" r="34" fill="${T===tower?'#ff6f59':'#ffffffcc'}"/><text x="${top[0]}" y="${top[1]-44}" text-anchor="middle" font-size="34" font-weight="800" fill="${T===tower?'#fff':'#0d1a2b'}">${T}</text></g>`;
+  }
+  const g=RG[tower],[x,y]=pt(g.E[0],(g.b+floor-.5)/g.n);
+  h+=`<path d="M${x-14} ${y} l-34 -18 v36 z" fill="#ff6f59" pointer-events="none"/>`;
+  $('render').innerHTML=h;
+}
+function compass(cx,cy){
+  const P=(a,r)=>[cx+r*Math.sin(a),cy-r*Math.cos(a)];
+  const pts=(...p)=>p.map(q=>q.map(v=>v.toFixed(1)).join(',')).join(' ');
+  let h=`<g aria-label="מצפן" pointer-events="none"><circle cx="${cx}" cy="${cy}" r="78" fill="var(--card)" stroke="var(--wall)" stroke-width="3"/><circle cx="${cx}" cy="${cy}" r="68" fill="none" stroke="var(--line)" stroke-width="2"/>`;
+  for(let i=0;i<72;i++){const a=i*Math.PI/36,l=i%9===0?12:i%3===0?7:4,[x1,y1]=P(a,78),[x2,y2]=P(a,78-l);h+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--wall)" stroke-width="${i%9===0?3:1.5}"/>`}
+  for(let k=0;k<4;k++){const a=k*Math.PI/2+Math.PI/4;h+=`<polygon points="${pts(P(a,44),P(a-.5,9),[cx,cy])}" fill="var(--mut)"/><polygon points="${pts(P(a,44),P(a+.5,9),[cx,cy])}" fill="var(--line)"/>`}
+  for(let k=0;k<4;k++){const a=k*Math.PI/2,n=k===0,c1=n?'#ff6f59':'var(--ink)',c2=n?'#c2412f':'var(--wall)';h+=`<polygon points="${pts(P(a,64),P(a-.32,13),[cx,cy])}" fill="${c1}"/><polygon points="${pts(P(a,64),P(a+.32,13),[cx,cy])}" fill="${c2}" opacity="${n?1:.75}"/>`}
+  h+=`<circle cx="${cx}" cy="${cy}" r="7" fill="var(--card)" stroke="var(--wall)" stroke-width="3"/>`;
+  const L=[['צפון',cx,cy-94,'#ff6f59'],['דרום',cx,cy+116,'var(--ink)'],['מזרח',cx+94,cy+9,'var(--ink)'],['מערב',cx-94,cy+9,'var(--ink)']];
+  for(const [t,x,y,c] of L)h+=`<text x="${x}" y="${y}" text-anchor="${x>cx?'start':x<cx?'end':'middle'}" direction="ltr" font-size="26" font-weight="800" fill="${c}">${t}</text>`;
+  return h+'</g>';
+}
+function renderAll(){renderTowers();renderFloors();renderPlan();renderRender();renderPanel();renderList()}
+
+$('towers').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tower=b.dataset.t;floor=Math.min(floor,TOWERS[tower].floors);selUnit=null;renderAll()});
+$('floors').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;floor=+b.dataset.f;selUnit=null;renderFloors();renderPlan();renderRender();renderPanel()});
+$('render').addEventListener('click',e=>{const p=e.target.closest('.fb');if(!p)return;tower=p.dataset.t;floor=+p.dataset.f;selUnit=null;renderAll()});
+const pick=g=>{selUnit=g.dataset.u;renderPlan();renderPanel();if(innerWidth<900)$('panel').scrollIntoView({behavior:'smooth'})};
+$('plan').addEventListener('click',e=>{const g=e.target.closest('.u');if(g)pick(g)});
+$('plan').addEventListener('keydown',e=>{const g=e.target.closest('.u');if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();pick(g)}});
+$('rows').addEventListener('click',e=>{const r=e.target.closest('tr.row');if(!r)return;tower=r.dataset.t;floor=+r.dataset.f;selUnit=r.dataset.u;renderAll();window.scrollTo({top:0,behavior:'smooth'})});
+['q','ft','fb'].forEach(id=>$(id).addEventListener('input',renderList));
+
+loadLocal();renderAll();
+
+const cfg=window.FIREBASE_CONFIG;
+if(!cfg||!window.firebase){note('מצב בדיקה: הסימונים נשמרים רק במכשיר הזה. כדי שהם יישמרו אצל כולם, צריך למלא את ההגדרות בקובץ config.js.');$('auth').style.display='none'}
+else{
+  firebase.initializeApp(cfg);
+  const auth=firebase.auth(),fdb=firebase.firestore();
+  db=fdb;mode='db';data={};canWrite=false;renderAll();note('טוען נתונים…');
+  const who=$('who'),btn=$('login');
+  btn.onclick=()=>auth.currentUser?auth.signOut():auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>note('ההתחברות נכשלה: '+(e.message||'')));
+  let unsub=null,timer=null;
+  auth.onAuthStateChanged(u=>{
+    canWrite=!!u;who.textContent=u?(u.displayName||u.email||''):'';btn.textContent=u?'התנתק':'התחבר עם Google';
+    if(unsub){unsub();unsub=null}
+    if(!u){data={};renderAll();note('כדי לראות ולסמן משרדים, התחבר עם חשבון Google (הכפתור למעלה).');return}
+    note('טוען נתונים…');timer=setTimeout(()=>note('לא ניתן להגיע לנתונים כרגע. ייתכן שהמידע לא מעודכן.'),10000);
+    unsub=fdb.collection('units').onSnapshot({includeMetadataChanges:true},s=>{
+      const nd={};for(const doc of s.docs){const v=doc.data();if(v&&typeof v==='object')nd[doc.id]=v}
+      data=nd;
+      if(!s.metadata.fromCache){clearTimeout(timer);note('')}
+      renderTowers();renderFloors();renderPlan();renderList();
+      if(!document.activeElement||!$('panel').contains(document.activeElement))renderPanel();
+    },e=>{clearTimeout(timer);note(e.code==='permission-denied'?'אין לחשבון הזה הרשאה לצפות בנתונים. בקש מהמנהל להוסיף אותך.':'החיבור לנתונים נותק. רענן את הדף.')});
+  });
+}
+}
+</script>
+</body>
+</html>
