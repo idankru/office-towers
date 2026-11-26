@@ -389,13 +389,13 @@ function renderTray(){
 }
 function openTray(){quick=true;renderTray()}
 function planKey(t,f){return TOWERS[t].plan(f)}
-function origSvg(o){
-  const p=PI[planKey(o.t,o.f)],pts=p.u[o.u],m=p.m[o.u],[vx,vy,vw,vh]=p.vb;
-  const sw=Math.max(3,p.w/220);
+function origSvg(o,list){
+  const L=list||[o],p=PI[planKey(o.t,o.f)],[vx,vy,vw,vh]=p.vb,sw=Math.max(3,p.w/220);
   let h=`<svg viewBox="${vx} ${vy} ${vw} ${vh}" xmlns="http://www.w3.org/2000/svg"><image href="${p.src}" x="0" y="0" width="${p.w}" height="${p.h}"/>`;
   h+=`<rect x="${vx}" y="${vy}" width="${vw}" height="${vh}" fill="rgba(255,255,255,.35)"/>`;
-  if(pts)h+=`<polygon points="${pts.map(q=>q.join(',')).join(' ')}" fill="rgba(255,111,89,.38)" stroke="#e8432a" stroke-width="${sw}" stroke-linejoin="round"/>`;
-  if(m)h+=`<rect x="${m[0]}" y="${m[1]}" width="${m[2]}" height="${m[3]}" fill="rgba(255,111,89,.25)" stroke="#e8432a" stroke-width="${sw*.7}" stroke-dasharray="${sw*2} ${sw}"/>`;
+  for(const x of L){const pts=p.u[x.u],m=p.m[x.u];
+    if(pts)h+=`<polygon points="${pts.map(q=>q.join(',')).join(' ')}" fill="rgba(255,111,89,.38)" stroke="#e8432a" stroke-width="${sw}" stroke-linejoin="round"/>`;
+    if(m)h+=`<rect x="${m[0]}" y="${m[1]}" width="${m[2]}" height="${m[3]}" fill="rgba(255,111,89,.25)" stroke="#e8432a" stroke-width="${sw*.7}" stroke-dasharray="${sw*2} ${sw}"/>`}
   return h+'</svg>';
 }
 function renderSvg(T0,f0){
@@ -423,15 +423,20 @@ function buildOffer(){
    <tr><td></td><td colspan="3"><b>סה״כ${multi?' לאופציה '+o:''}</b></td><td><b>${area(g).toFixed(1)}</b></td><td></td></tr></tbody></table>`).join('')}
    ${note?`<div class="snote"><b>הערה:</b> ${esc(note)}</div>`:''}
    <div class="sfoot">המסמך מציג משרדים זמינים להצעה ואינו מהווה הצעת מחיר. השטחים לפי תוכניות הקומה; ייתכנו שינויים.</div></div>`;
-  groups.forEach(([og,g])=>g.forEach(o=>{
-    const p=planOf(o.t,o.f),mt=mamadText(o),i=num.get(o)-1;
-    pages+=`<div class="sheet">${head}
-     <h2>${multi?`אופציה ${og} · `:''}${i+1}. מגדל ${esc(o.t)} · קומה ${o.f} · משרד ${esc(o.u)}</h2>
-     <div class="pics"><figure class="plan">${origSvg(o)}<figcaption>תוכנית קומה מקורית — ${o.t==='A'?'מגדל A, '+p.title:'מגדל B, קומות טיפוסיות'}. המשרד מסומן בכתום${mt?', הממ"ד בקו מקווקו':''}.</figcaption></figure>
-     <div class="lower"><figure>${renderSvg(o.t,o.f)}<figcaption>הדמיה — קומה ${o.f} מסומנת במגדל ${esc(o.t)}.</figcaption></figure>
-     <div class="dl"><div><span>מגדל</span><b>${esc(o.t)}</b></div><div><span>קומה</span><b>${o.f}</b></div><div><span>משרד</span><b>${esc(o.u)}</b></div><div><span>שטח</span><b>${esc(unitArea(o.t,o.f,o.u))} מ"ר</b></div>${mt?`<div><span>ממ"ד</span><b>${esc(mt)}</b></div>`:''}</div></div></div>
-     <div class="sfoot">נדל״ן עם שחר · המסמך אינו מהווה הצעת מחיר.</div></div>`;
-  }));
+  groups.forEach(([og,g])=>{
+    const fm=new Map();for(const x of g){const k=x.t+'_'+x.f;if(!fm.has(k))fm.set(k,[]);fm.get(k).push(x)}
+    for(const L of fm.values()){
+      const o=L[0],p=planOf(o.t,o.f),one=L.length===1,anyM=L.some(x=>mamadText(x));
+      const nums=L.map(x=>num.get(x)).join(', ');
+      pages+=`<div class="sheet">${head}
+       <h2>${multi?`אופציה ${og} · `:''}${one?nums+'. ':''}מגדל ${esc(o.t)} · קומה ${o.f} · ${one?'משרד '+esc(o.u):'משרדים '+L.map(x=>esc(x.u)).join(' + ')}</h2>
+       <div class="pics"><figure class="plan">${origSvg(o,L)}<figcaption>תוכנית קומה מקורית — ${o.t==='A'?'מגדל A, '+p.title:'מגדל B, קומות טיפוסיות'}. ${one?'המשרד מסומן':'המשרדים מסומנים'} בכתום${anyM?', הממ"ד בקו מקווקו':''}.</figcaption></figure>
+       <div class="lower"><figure>${renderSvg(o.t,o.f)}<figcaption>הדמיה — קומה ${o.f} מסומנת במגדל ${esc(o.t)}.</figcaption></figure>
+       ${one?`<div class="dl"><div><span>מגדל</span><b>${esc(o.t)}</b></div><div><span>קומה</span><b>${o.f}</b></div><div><span>משרד</span><b>${esc(o.u)}</b></div><div><span>שטח</span><b>${esc(unitArea(o.t,o.f,o.u))} מ"ר</b></div>${mamadText(o)?`<div><span>ממ"ד</span><b>${esc(mamadText(o))}</b></div>`:''}</div>`
+       :`<div class="dl"><div><span>מיקום</span><b>מגדל ${esc(o.t)}&rlm; · קומה ${o.f}</b></div>${L.map(x=>`<div><span>${esc(x.u)}${mamadText(x)?` <small style="color:#5d6b66">(${esc(mamadText(x))})</small>`:''}</span><b>${esc(unitArea(x.t,x.f,x.u))} מ"ר</b></div>`).join('')}<div><span><b>סה״כ בקומה</b></span><b>${area(L).toFixed(1)} מ"ר</b></div></div>`}</div></div>
+       <div class="sfoot">נדל״ן עם שחר · המסמך אינו מהווה הצעת מחיר.</div></div>`;
+    }
+  });
   $('oPages').innerHTML=pages;
 }
 function openOffer(){if(!offerItems().length)return;buildOffer();document.body.classList.add('offering');window.scrollTo(0,0);
