@@ -97,7 +97,15 @@ tr.row{cursor:pointer}tr.row:hover td{background:color-mix(in srgb,var(--head) 6
 .tray{position:fixed;bottom:0;inset-inline:0;z-index:20;display:none;align-items:center;gap:10px;flex-wrap:wrap;padding:10px max(4vw,16px);background:#0d1a2b;color:#fff;box-shadow:0 -6px 20px rgba(0,0,0,.25)}
 .tray b{font-size:16px}.tray .chips{flex:1;display:flex;gap:6px;flex-wrap:wrap;font-size:13px;color:#b9c8dc}
 .tray button{font:inherit;font-weight:700;min-height:42px;padding:0 16px;border-radius:10px;border:0;cursor:pointer}
-.tray .go{background:var(--acc);color:#fff}.tray .clr{background:transparent;color:#fff;border:1px solid #4a5b72}
+.tray .go{background:var(--acc);color:#fff}
+.tray .opt-t,.tray .opt-add{background:#1c2c42;color:#fff;border:1px solid #33465f;min-height:40px;padding:0 12px}
+.tray .opt-t small{color:#b9c8dc;font-weight:400;margin-inline-start:4px}
+.tray .opt-t.on{background:var(--acc);border-color:var(--acc)}.tray .opt-t.on small{color:#fff}
+.tray .opt-add{background:transparent;border-style:dashed}
+#quickTog.on{background:#fff;color:#0d1a2b;border-color:#fff}
+body.quick .u{cursor:copy}
+.quickstart{font:inherit;font-weight:700;min-height:40px;padding:0 14px;border-radius:10px;border:2px dashed var(--acc);background:var(--card);color:var(--ink);cursor:pointer}
+.ohdr{margin:18px 0 6px;padding:6px 12px;background:#00463c;color:#fff;border-radius:8px;font-size:16px;font-weight:700;display:flex;justify-content:space-between}.tray .clr{background:transparent;color:#fff;border:1px solid #4a5b72}
 body.hastray main{padding-bottom:110px}
 #offer{display:none;background:#e9edf1;min-height:100vh}
 body.offering>header,body.offering>main,body.offering .tray{display:none!important}
@@ -117,6 +125,7 @@ body.offering #offer{display:block}
 .shead .who{text-align:end;font-size:13px;color:#5d6b66}
 .shead .who b{display:block;font-size:16px;color:#00463c}
 .sheet table{width:100%;border-collapse:collapse;font-size:14px;background:none}
+.sheet table{table-layout:fixed}.sheet th:first-child{width:7%}.sheet th:nth-child(2),.sheet th:nth-child(3){width:11%}.sheet th:nth-child(4){width:14%}.sheet th:nth-child(5){width:15%}
 .sheet th,.sheet td{border-bottom:1px solid #d5ddda;padding:7px 8px;text-align:start}
 .sheet th{background:#eef3f1;font-size:13px}
 .facts{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}
@@ -163,6 +172,7 @@ body.offering #offer{display:block}
 <main>
   <div class="notice" id="notice"></div>
   <div class="floors" id="floors"></div>
+  <div style="margin:-4px 0 12px"><button class="quickstart" id="qs" type="button">+ בניית הצעה ללקוח (בחירת כמה משרדים ואופציות)</button></div>
   <div class="grid">
     <div class="planbox">
       <div class="plantop">
@@ -188,7 +198,7 @@ body.offering #offer{display:block}
     <p class="empty" id="noRows"></p>
   </section>
 </main>
-<div class="tray" id="tray"><b id="trayN"></b><div class="chips" id="trayList"></div><button class="clr" id="trayClr" type="button">נקה</button><button class="go" id="trayGo" type="button">הצג והפק PDF</button></div>
+<div class="tray" id="tray"><b id="trayN"></b><div class="chips" id="trayList"></div><button class="clr" id="quickTog" type="button">בחירה מהירה</button><button class="clr" id="trayClr" type="button">נקה</button><button class="go" id="trayGo" type="button">הצג והפק PDF</button></div>
 <section id="offer">
   <div class="otool">
     <label>שם הלקוח<input id="oClient" placeholder="למשל: חברת אלפא בע״מ"></label>
@@ -265,6 +275,7 @@ function renderPlan(){
       <text x="${mx}" y="${my+(who?8:30)}" text-anchor="middle" font-size="26" fill="${ink}" opacity=".8">${esc(a)} מ"ר</text>
       ${m&&m.n.startsWith('כולל')?`<text x="${mx}" y="${my+(who?40:62)}" text-anchor="middle" font-size="22" font-weight="700" fill="${ink}" opacity=".85">כולל ממ"ד</text>`:''}
       ${who?`<text x="${mx}" y="${my+(m&&m.n.startsWith('כולל')?78:50)}" text-anchor="middle" font-size="28" font-weight="700" fill="${ink}">${esc(fit(who,w))}</text>`:''}
+      ${offer.has(key(tower,floor,id))?`<rect x="${x+10}" y="${y+10}" width="${w-20}" height="${hh-20}" rx="6" fill="none" stroke="#ff6f59" stroke-width="7" stroke-dasharray="18 10" pointer-events="none"/><circle cx="${x+w-36}" cy="${y+36}" r="24" fill="#ff6f59"/><text x="${x+w-36}" y="${y+45}" text-anchor="middle" font-size="26" font-weight="800" fill="#fff">${offer.get(key(tower,floor,id))}</text>`:''}
     </g>`;
   }
   h+=compass(-170,150);
@@ -290,14 +301,14 @@ function renderPanel(){
   <label class="f" for="ph">טלפון</label><input class="t" id="ph" type="tel" inputmode="tel" ${dis}>
   <label class="f" for="nt">הערות</label><textarea id="nt" ${dis}></textarea>
   <div class="btns"><button class="btn" id="save" ${dis}>שמור</button><button class="btn ghost" id="close">סגור</button></div>
-  <button class="offerbtn${offer.has(key(tower,floor,selUnit))?' in':''}" id="offTog" type="button">${offer.has(key(tower,floor,selUnit))?'✓ בהצעה ללקוח — לחץ להסרה':'+ הוסף להצעה ללקוח'}</button>
+  <button class="offerbtn${offer.has(key(tower,floor,selUnit))?' in':''}" id="offTog" type="button">${offer.has(key(tower,floor,selUnit))?`✓ באופציה ${offer.get(key(tower,floor,selUnit))} להצעה — לחץ להסרה`:`+ הוסף לאופציה ${activeOpt} בהצעה ללקוח`}</button>
   <p class="msg" id="msg">${canWrite?'':(mode==='db'?'התחבר עם Google כדי לסמן.':'יש לך הרשאת צפייה בלבד.')}</p>${stats()}`;
   $('nm').value=d.name||'';$('ph').value=d.phone||'';$('nt').value=d.notes||'';
   el.querySelectorAll('input[name=ty]').forEach(r=>r.addEventListener('change',()=>{
     el.querySelectorAll('.opt').forEach(o=>o.classList.toggle('on',o.querySelector('input').checked));
   }));
   $('save').onclick=save;
-  $('offTog').onclick=()=>{const k=key(tower,floor,selUnit);offer.has(k)?offer.delete(k):offer.add(k);saveOffer();renderPanel();renderTray()};$('close').onclick=()=>{selUnit=null;renderPlan();renderPanel()};
+  $('offTog').onclick=()=>{toggleOffer(selUnit);renderPanel()};$('close').onclick=()=>{selUnit=null;renderPlan();renderPanel()};
 }
 async function save(){
   const t=document.querySelector('input[name=ty]:checked')?.value||'';
@@ -356,16 +367,27 @@ function compass(cx,cy){
 }
 function renderAll(){renderTowers();renderFloors();renderPlan();renderRender();renderPanel();renderList();renderTray()}
 const PI={"AH":{"src":"plan-a-high.jpg","w":921,"h":810,"vb":[20,0,900,810],"u":{"A-01":[[232,14],[537,57],[520,230],[355,240],[185,190]],"A-02":[[537,57],[895,100],[888,240],[705,232],[690,260],[600,250],[520,230]],"A-03":[[705,232],[888,240],[862,495],[682,470],[690,265]],"A-04":[[682,470],[862,495],[845,710],[665,665],[670,600]],"A-05":[[545,612],[668,610],[665,665],[845,710],[840,795],[545,795]],"A-06":[[265,612],[545,612],[545,795],[265,795]],"A-07":[[118,430],[290,485],[275,612],[265,612],[265,795],[42,795]],"A-08":[[185,190],[355,240],[292,485],[118,430]]},"m":{"A-08":[350,255,70,105],"A-03":[612,358,76,82]}},"AL":{"src":"plan-a-low.jpg","w":500,"h":438,"vb":[0,0,500,438],"u":{"A1-01":[[112,10],[255,22],[260,105],[200,118],[92,108]],"A1-02":[[255,22],[365,32],[360,110],[260,105]],"A1-03":[[365,32],[485,38],[475,125],[365,120]],"A1-10":[[92,108],[205,118],[175,265],[65,235]],"A1-04":[[368,122],[476,128],[470,262],[372,262]],"A1-05":[[372,262],[470,262],[465,350],[372,345]],"A1-09":[[65,235],[170,262],[150,345],[150,425],[25,425]],"A1-08":[[150,345],[225,345],[225,425],[150,425]],"A1-07":[[225,345],[300,345],[300,425],[225,425]],"A1-06":[[300,345],[465,345],[460,425],[300,425]]},"m":{"A1-10":[205,145,55,37],"A1-04":[338,198,38,35]}},"B":{"src":"plan-b.jpg","w":1280,"h":1160,"vb":[60,60,1150,940],"u":{"B-01":[[85,135],[395,122],[402,295],[310,300],[85,300]],"B-02":[[395,122],[635,112],[648,322],[472,330],[405,300]],"B-03":[[635,112],[880,95],[888,272],[795,280],[795,322],[648,322]],"B-04":[[880,95],[1185,72],[1185,278],[955,270],[888,272]],"B-05":[[955,272],[1185,278],[1185,518],[955,518]],"B-06":[[955,518],[1185,518],[1172,770],[955,770]],"B-07":[[880,768],[1172,768],[1190,975],[880,975]],"B-08":[[635,735],[795,735],[795,768],[880,768],[880,975],[635,975]],"B-09":[[400,765],[470,765],[470,735],[635,735],[635,975],[400,975]],"B-10":[[85,745],[310,740],[400,765],[400,975],[80,975]],"B-11":[[85,550],[305,550],[320,740],[85,745]],"B-12":[[85,300],[305,300],[305,550],[85,550]]},"m":{"B-11":[320,553,80,142],"B-05":[870,408,78,147]}}};
-let offer=new Set();try{offer=new Set(JSON.parse(localStorage.getItem('offer-sel')||'[]'))}catch(e){}
-function saveOffer(){try{localStorage.setItem('offer-sel',JSON.stringify([...offer]))}catch(e){}}
+let offer=new Map(),activeOpt=1,nOpts=1,quick=false;
+try{const v=JSON.parse(localStorage.getItem('offer-v2')||'null');
+  if(v){offer=new Map(Object.entries(v.sel||{}).map(([k,o])=>[k,+o||1]));nOpts=Math.max(1,+v.n||1);activeOpt=Math.min(nOpts,Math.max(1,+v.a||1))}
+  else{for(const k of JSON.parse(localStorage.getItem('offer-sel')||'[]'))offer.set(k,1)}}catch(e){}
+function saveOffer(){try{localStorage.setItem('offer-v2',JSON.stringify({sel:Object.fromEntries(offer),n:nOpts,a:activeOpt}))}catch(e){}}
+function toggleOffer(u){const k=key(tower,floor,u);if(offer.get(k)===activeOpt)offer.delete(k);else offer.set(k,activeOpt);saveOffer();renderPlan();renderTray()}
 const parseK=k=>{const [t,f,...u]=k.split('_');return {t,f:+f,u:u.join('_')}};
-function offerItems(){return [...offer].map(parseK).filter(o=>TOWERS[o.t]&&o.f>=1&&o.f<=TOWERS[o.t].floors&&planOf(o.t,o.f).units.some(x=>x[0]===o.u))
-  .sort((a,b)=>a.t.localeCompare(b.t)||a.f-b.f||a.u.localeCompare(b.u))}
+function offerItems(){return [...offer.keys()].map(k=>({...parseK(k),o:offer.get(k)})).filter(o=>TOWERS[o.t]&&o.f>=1&&o.f<=TOWERS[o.t].floors&&planOf(o.t,o.f).units.some(x=>x[0]===o.u))
+  .sort((a,b)=>a.o-b.o||a.t.localeCompare(b.t)||a.f-b.f||a.u.localeCompare(b.u))}
 function renderTray(){
-  const it=offerItems();$('tray').style.display=it.length?'flex':'none';document.body.classList.toggle('hastray',!!it.length);
+  const it=offerItems(),show=it.length>0||quick;
+  $('tray').style.display=show?'flex':'none';document.body.classList.toggle('hastray',show);
   $('trayN').textContent=`הצעה ללקוח: ${it.length} משרדים`;
-  $('trayList').textContent=it.map(o=>`${o.t}·${o.f}·${o.u}`).join('   ');
+  let h='';for(let o=1;o<=nOpts;o++){const c=it.filter(x=>x.o===o),a=c.reduce((s,x)=>s+(parseFloat(unitArea(x.t,x.f,x.u))||0),0);
+    h+=`<button type="button" class="opt-t${o===activeOpt?' on':''}" data-o="${o}" title="${esc(c.map(x=>x.t+'·'+x.f+'·'+x.u).join(', '))}">אופציה ${o} <small>${c.length} · ${a?a.toFixed(0)+' מ"ר':'ריק'}</small></button>`}
+  h+=`<button type="button" class="opt-add" id="optAdd">+ אופציה</button>`;
+  $('trayList').innerHTML=h;
+  $('quickTog').classList.toggle('on',quick);$('quickTog').textContent=quick?'✓ בחירה מהירה פעילה':'בחירה מהירה';
+  document.body.classList.toggle('quick',quick);
 }
+function openTray(){quick=true;renderTray()}
 function planKey(t,f){return TOWERS[t].plan(f)}
 function origSvg(o){
   const p=PI[planKey(o.t,o.f)],pts=p.u[o.u],m=p.m[o.u],[vx,vy,vw,vh]=p.vb;
@@ -387,24 +409,29 @@ function renderSvg(T0,f0){
 function mamadText(o){const m=unitMamad(o.t,o.f,o.u);return m||''}
 function buildOffer(){
   const it=offerItems(),client=$('oClient').value.trim(),note=$('oNote').value.trim();
-  const date=new Date().toLocaleDateString('he-IL'),tot=it.reduce((s,o)=>s+(parseFloat(unitArea(o.t,o.f,o.u))||0),0);
+  const date=new Date().toLocaleDateString('he-IL'),area=g=>g.reduce((s,o)=>s+(parseFloat(unitArea(o.t,o.f,o.u))||0),0);
+  const gm=new Map();for(const x of it){if(!gm.has(x.o))gm.set(x.o,[]);gm.get(x.o).push(x)}
+  const groups=[...gm.entries()].sort((a,b)=>a[0]-b[0]),multi=groups.length>1,num=new Map();let n=0;
+  groups.forEach(([o,g],gi)=>{g.forEach(x=>num.set(x,++n));if(multi)g.forEach(x=>x.lbl=gi+1)});
+  if(multi)groups.forEach(([o,g],gi)=>groups[gi][0]=gi+1);
   const head=`<div class="shead"><div><h1>משרדים להצעה${client?' — '+esc(client):''}</h1><div style="color:#5d6b66;font-size:13px">${esc(date)} · מגדלים A ו־B&rlm;</div></div><img class="logo" src="logo.jpg" alt="נדל״ן עם שחר"></div>`;
   let pages=`<div class="sheet">${head}
-   <p style="margin:0 0 10px">ריכוז המשרדים שנבחרו עבורך. בעמודים הבאים: מיקום כל משרד בתוכנית הקומה המקורית ובהדמיית המגדלים.</p>
+   <p style="margin:0 0 10px">${multi?`ריכוז ${groups.length} אופציות שנבחרו עבורך.`:'ריכוז המשרדים שנבחרו עבורך.'} בעמודים הבאים: מיקום כל משרד בתוכנית הקומה המקורית ובהדמיית המגדלים.</p>
+   ${groups.map(([o,g])=>`${multi?`<div class="ohdr"><span>אופציה ${o}</span><span>${g.length} משרדים · ${area(g).toFixed(1)} מ"ר</span></div>`:''}
    <table><thead><tr><th>#</th><th>מגדל</th><th>קומה</th><th>משרד</th><th>שטח (מ"ר)</th><th>ממ"ד</th></tr></thead><tbody>
-   ${it.map((o,i)=>`<tr><td>${i+1}</td><td>${esc(o.t)}</td><td>${o.f}</td><td><b>${esc(o.u)}</b></td><td>${esc(unitArea(o.t,o.f,o.u))}</td><td>${esc(mamadText(o)||'—')}</td></tr>`).join('')}
-   <tr><td></td><td colspan="3"><b>סה״כ</b></td><td><b>${tot.toFixed(1)}</b></td><td></td></tr></tbody></table>
+   ${g.map(x=>`<tr><td>${num.get(x)}</td><td>${esc(x.t)}</td><td>${x.f}</td><td><b>${esc(x.u)}</b></td><td>${esc(unitArea(x.t,x.f,x.u))}</td><td>${esc(mamadText(x)||'—')}</td></tr>`).join('')}
+   <tr><td></td><td colspan="3"><b>סה״כ${multi?' לאופציה '+o:''}</b></td><td><b>${area(g).toFixed(1)}</b></td><td></td></tr></tbody></table>`).join('')}
    ${note?`<div class="snote"><b>הערה:</b> ${esc(note)}</div>`:''}
    <div class="sfoot">המסמך מציג משרדים זמינים להצעה ואינו מהווה הצעת מחיר. השטחים לפי תוכניות הקומה; ייתכנו שינויים.</div></div>`;
-  it.forEach((o,i)=>{
-    const p=planOf(o.t,o.f),mt=mamadText(o);
+  groups.forEach(([og,g])=>g.forEach(o=>{
+    const p=planOf(o.t,o.f),mt=mamadText(o),i=num.get(o)-1;
     pages+=`<div class="sheet">${head}
-     <h2>${i+1}. מגדל ${esc(o.t)} · קומה ${o.f} · משרד ${esc(o.u)}</h2>
+     <h2>${multi?`אופציה ${og} · `:''}${i+1}. מגדל ${esc(o.t)} · קומה ${o.f} · משרד ${esc(o.u)}</h2>
      <div class="pics"><figure class="plan">${origSvg(o)}<figcaption>תוכנית קומה מקורית — ${o.t==='A'?'מגדל A, '+p.title:'מגדל B, קומות טיפוסיות'}. המשרד מסומן בכתום${mt?', הממ"ד בקו מקווקו':''}.</figcaption></figure>
      <div class="lower"><figure>${renderSvg(o.t,o.f)}<figcaption>הדמיה — קומה ${o.f} מסומנת במגדל ${esc(o.t)}.</figcaption></figure>
      <div class="dl"><div><span>מגדל</span><b>${esc(o.t)}</b></div><div><span>קומה</span><b>${o.f}</b></div><div><span>משרד</span><b>${esc(o.u)}</b></div><div><span>שטח</span><b>${esc(unitArea(o.t,o.f,o.u))} מ"ר</b></div>${mt?`<div><span>ממ"ד</span><b>${esc(mt)}</b></div>`:''}</div></div></div>
      <div class="sfoot">נדל״ן עם שחר · המסמך אינו מהווה הצעת מחיר.</div></div>`;
-  });
+  }));
   $('oPages').innerHTML=pages;
 }
 function openOffer(){if(!offerItems().length)return;buildOffer();document.body.classList.add('offering');window.scrollTo(0,0);
@@ -415,14 +442,18 @@ $('towers').addEventListener('click',e=>{const b=e.target.closest('button');if(!
 $('floors').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;floor=+b.dataset.f;selUnit=null;renderFloors();renderPlan();renderRender();renderPanel()});
 $('render').addEventListener('click',e=>{const p=e.target.closest('.fb');if(!p)return;tower=p.dataset.t;floor=+p.dataset.f;selUnit=null;renderAll()});
 const pick=g=>{selUnit=g.dataset.u;renderPlan();renderPanel();if(innerWidth<900)$('panel').scrollIntoView({behavior:'smooth'})};
-$('plan').addEventListener('click',e=>{const g=e.target.closest('.u');if(g)pick(g)});
+$('plan').addEventListener('click',e=>{const g=e.target.closest('.u');if(!g)return;if(quick){toggleOffer(g.dataset.u);if(selUnit)renderPanel()}else pick(g)});
 $('plan').addEventListener('keydown',e=>{const g=e.target.closest('.u');if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();pick(g)}});
 $('rows').addEventListener('click',e=>{const r=e.target.closest('tr.row');if(!r)return;tower=r.dataset.t;floor=+r.dataset.f;selUnit=r.dataset.u;renderAll();window.scrollTo({top:0,behavior:'smooth'})});
 ['q','ft','fb'].forEach(id=>$(id).addEventListener('input',renderList));
 
 loadLocal();renderAll();
 $('trayGo').onclick=openOffer;
-$('trayClr').onclick=()=>{offer.clear();saveOffer();renderTray();renderPanel()};
+$('trayClr').onclick=()=>{offer.clear();nOpts=1;activeOpt=1;saveOffer();renderTray();renderPlan();renderPanel()};
+$('quickTog').onclick=()=>{quick=!quick;renderTray()};
+$('trayList').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='optAdd'){nOpts++;activeOpt=nOpts}else activeOpt=+b.dataset.o;saveOffer();renderTray();renderPanel()});
+$('qs').onclick=openTray;
 $('oBack').onclick=closeOffer;
 $('oPrint').onclick=()=>{buildOffer();const c=$('oClient').value.trim();document.title=c?`משרדים להצעה - ${c}`:'משרדים להצעה';setTimeout(()=>window.print(),150)};
 ['oClient','oNote'].forEach(id=>$(id).addEventListener('input',buildOffer));
