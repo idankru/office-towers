@@ -113,6 +113,7 @@ body.offering #offer{display:block}
 .sheet h1{font-size:28px;margin:0;color:#00463c;line-height:1.15}
 .sheet h2{font-size:22px;margin:0 0 4px;color:#00463c}
 .shead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:3px solid #00463c;padding-bottom:10px;margin-bottom:14px}
+.shead .logo{height:22mm;width:auto;border-radius:6px;display:block}
 .shead .who{text-align:end;font-size:13px;color:#5d6b66}
 .shead .who b{display:block;font-size:16px;color:#00463c}
 .sheet table{width:100%;border-collapse:collapse;font-size:14px;background:none}
@@ -387,7 +388,7 @@ function mamadText(o){const m=unitMamad(o.t,o.f,o.u);return m||''}
 function buildOffer(){
   const it=offerItems(),client=$('oClient').value.trim(),note=$('oNote').value.trim();
   const date=new Date().toLocaleDateString('he-IL'),tot=it.reduce((s,o)=>s+(parseFloat(unitArea(o.t,o.f,o.u))||0),0);
-  const head=`<div class="shead"><div><h1>משרדים להצעה${client?' — '+esc(client):''}</h1><div style="color:#5d6b66;font-size:13px">${esc(date)} · מגדלים A ו־B&rlm;</div></div><div class="who"><b>שי איילה אגם</b>נדל״ן מסחרי</div></div>`;
+  const head=`<div class="shead"><div><h1>משרדים להצעה${client?' — '+esc(client):''}</h1><div style="color:#5d6b66;font-size:13px">${esc(date)} · מגדלים A ו־B&rlm;</div></div><img class="logo" src="logo.jpg" alt="נדל״ן עם שחר"></div>`;
   let pages=`<div class="sheet">${head}
    <p style="margin:0 0 10px">ריכוז המשרדים שנבחרו עבורך. בעמודים הבאים: מיקום כל משרד בתוכנית הקומה המקורית ובהדמיית המגדלים.</p>
    <table><thead><tr><th>#</th><th>מגדל</th><th>קומה</th><th>משרד</th><th>שטח (מ"ר)</th><th>ממ"ד</th></tr></thead><tbody>
@@ -402,7 +403,7 @@ function buildOffer(){
      <div class="pics"><figure class="plan">${origSvg(o)}<figcaption>תוכנית קומה מקורית — ${o.t==='A'?'מגדל A, '+p.title:'מגדל B, קומות טיפוסיות'}. המשרד מסומן בכתום${mt?', הממ"ד בקו מקווקו':''}.</figcaption></figure>
      <div class="lower"><figure>${renderSvg(o.t,o.f)}<figcaption>הדמיה — קומה ${o.f} מסומנת במגדל ${esc(o.t)}.</figcaption></figure>
      <div class="dl"><div><span>מגדל</span><b>${esc(o.t)}</b></div><div><span>קומה</span><b>${o.f}</b></div><div><span>משרד</span><b>${esc(o.u)}</b></div><div><span>שטח</span><b>${esc(unitArea(o.t,o.f,o.u))} מ"ר</b></div>${mt?`<div><span>ממ"ד</span><b>${esc(mt)}</b></div>`:''}</div></div></div>
-     <div class="sfoot">שי איילה אגם · המסמך אינו מהווה הצעת מחיר.</div></div>`;
+     <div class="sfoot">נדל״ן עם שחר · המסמך אינו מהווה הצעת מחיר.</div></div>`;
   });
   $('oPages').innerHTML=pages;
 }
